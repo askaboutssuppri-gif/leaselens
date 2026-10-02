@@ -26,7 +26,11 @@
       "expo-document-picker"
     ],
     "scheme": "myapp",
-    "slug": "leaselens",
+    "slug": "leaselens",    "extra": {
+      "eas": {
+        "projectId": "9e3a9d64-a5dc-49f0-aa39-afb3d5462f62"
+      }
+    },
     "userInterfaceStyle": "automatic",
     "version": "1.0.0",
     "web": {
