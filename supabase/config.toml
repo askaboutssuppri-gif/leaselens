@@ -1,0 +1,2 @@
+[functions.analyze-lease]
+verify_jwt = true
