@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, Settings } from 'lucide-react-native';
+import { Home, History, Settings } from 'lucide-react-native';
 import { Colors } from '@/lib/theme';
 
 export default function TabLayout() {
@@ -33,6 +33,15 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
             <Home size={size} color={color} strokeWidth={2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ size, color }) => (
+            <History size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
