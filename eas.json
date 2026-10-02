@@ -1,0 +1,16 @@
+{
+  "build": {
+    "production": {
+      "android": {
+        "autoIncrement": true,
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "submit": {
+    "production": {}
+  }
+}
