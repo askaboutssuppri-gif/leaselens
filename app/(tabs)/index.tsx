@@ -1,4 +1,61 @@
-import { useState, useCallback } from 'react';
+{
+  "name": "bolt-expo-starter",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "EXPO_NO_TELEMETRY=1 expo start",
+    "build:web": "expo export --platform web",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo/vector-icons": "^15.0.2",
+    "@lucide/lab": "^0.1.2",
+    "@react-navigation/bottom-tabs": "^7.2.0",
+    "@react-navigation/native": "^7.0.14",
+    "@supabase/supabase-js": "2.58.0",
+    "expo": "^54.0.10",
+    "expo-blur": "~15.0.7",
+    "expo-camera": "~17.0.8",
+    "expo-constants": "~18.0.9",
+    "expo-document-picker": "~14.0.8",
+    "expo-file-system": "~19.0.24",
+    "expo-font": "~14.0.8",
+    "expo-haptics": "~15.0.7",
+    "expo-linear-gradient": "~15.0.7",
+    "expo-linking": "~8.0.8",
+    "expo-router": "~6.0.8",
+    "expo-splash-screen": "~31.0.10",
+    "expo-status-bar": "~3.0.8",
+    "expo-symbols": "~1.0.7",
+    "expo-system-ui": "~6.0.7",
+    "expo-web-browser": "~15.0.7",
+    "lucide-react-native": "^0.544.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.4",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "react-native-url-polyfill": "^2.0.0",
+    "react-native-web": "^0.21.0",
+    "react-native-webview": "13.15.0",
+    "react-native-worklets": "0.6.0",
+    "react-native-purchases": "^8.9.0",
+    "expo-print": "~14.0.3",
+    "expo-sharing": "~13.0.3",
+    "expo-clipboard": "~7.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
+      }import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -97,7 +154,205 @@ export default function HomeScreen() {
     });
   };
 
-  const reminderHeadline = (() => {                <View style={styles.leaseMetaRow}>
+  const reminderHeadline = (() => {    if (!profile?.lease_end_date) return '';
+    if (reminderDays === null) return `Your lease ends on ${formatDate(profile.lease_end_date)}.`;
+    if (reminderDays < 0) return `Your lease ended on ${formatDate(profile.lease_end_date)}.`;
+    if (reminderDays === 0) return 'Your lease ends today.';
+    if (reminderDays === 1) return 'Your lease ends tomorrow.';
+    return `Your lease ends in ${reminderDays} days (${formatDate(profile.lease_end_date)}).`;
+  })();  const handleScanLease = () => {
+    if (scansRemaining <= 0) {
+      Alert.alert(
+        'No scans remaining',
+        'You have used all your free scans. Upgrade to Premium for 10 scans per day plus PDF reports, negotiation letters, and lease comparison.',
+        [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'See plans', onPress: () => router.push('/paywall') },
+        ]
+      );
+      return;
+    }
+    router.push('/camera-capture');
+  };
+
+  const handleImportPdf = async () => {
+    if (scansRemaining <= 0) {
+      Alert.alert(
+        'No scans remaining',
+        'You have used all your free scans. Upgrade to Premium for 10 scans per day plus PDF reports, negotiation letters, and lease comparison.',
+        [
+          { text: 'Not now', style: 'cancel' },
+          { text: 'See plans', onPress: () => router.push('/paywall') },
+        ]
+      );
+      return;
+    }
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+      const file = result.assets[0];
+
+      // On web, we can't read file system the same way — redirect with file info
+      if (Platform.OS === 'web') {
+        Alert.alert(
+          'PDF import on web',
+          'PDF import is optimized for mobile. Please use the camera scanner or try on the mobile app.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      const fileInfo = await FileSystem.getInfoAsync(file.uri);
+      if (!fileInfo.exists) {
+        Alert.alert('Error', 'Could not read the selected file.');
+        return;
+      }
+
+      // Check page count by file size heuristic — real PDF parsing needs a library
+      // For now we accept the file and let the edge function handle page extraction
+      const fileName = file.name || 'Imported Lease';
+
+      setScanSession({
+        source: 'pdf',
+        title: fileName.replace(/\.pdf$/i, ''),
+        pageCount: 0,
+        imageUris: [file.uri],
+      });
+
+      router.push('/processing');
+    } catch {
+      Alert.alert('Error', 'Could not import the PDF. Please try again.');
+    }
+  };
+
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return Colors.gray[400];
+    if (score >= 70) return Colors.success;
+    if (score >= 40) return Colors.warning;
+    return Colors.error;
+  };
+
+  const handleLeasePress = (leaseId: string) => {
+    router.push(`/results/${leaseId}`);
+  };
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: 40 }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.amber[400]} />}
+    >
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Welcome back</Text>
+          <Text style={styles.email}>{user?.email}</Text>
+        </View>
+      </View>
+      <View style={styles.scanCard}>
+        <View style={styles.scanIconWrap}>
+          <ScanLine size={36} color={Colors.navy[900]} strokeWidth={2} />
+        </View>
+        <Text style={styles.scanTitle}>Scan a lease</Text>
+        <Text style={styles.scanSubtitle}>
+          Point your camera at a lease document and LeaseLens will analyze it on the spot.
+        </Text>
+        <TouchableOpacity
+          style={[styles.scanButton, scansRemaining <= 0 && styles.scanButtonDisabled]}
+          onPress={handleScanLease}          activeOpacity={0.85}
+          disabled={scansRemaining <= 0}
+        >
+          <Text style={styles.scanButtonText}>
+            {scansRemaining > 0 ? 'Start scanning' : 'No scans left'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={[styles.importRow, scansRemaining <= 0 && styles.importRowDisabled]}
+        onPress={handleImportPdf}
+        activeOpacity={0.7}
+        disabled={scansRemaining <= 0}
+      >
+        <View style={styles.importIconWrap}>
+          <FileUp size={22} color={Colors.amber[400]} strokeWidth={2} />
+        </View>
+        <View style={styles.importContent}>
+          <Text style={styles.importTitle}>Import PDF</Text>
+          <Text style={styles.importSubtitle}>Upload a lease file (max {MAX_PAGES} pages)</Text>
+        </View>
+        <ChevronRight size={20} color={Colors.gray[600]} />
+      </TouchableOpacity>
+
+      <View style={styles.counterCard}>
+        <View style={styles.counterLeft}>
+          <View style={styles.counterIconWrap}>
+            <Zap size={20} color={Colors.amber[400]} strokeWidth={2} />
+          </View>
+          <View>
+            <Text style={styles.counterTitle}>{isPro ? 'Daily scans' : 'Free scans'}</Text>
+            <Text style={styles.counterSub}>
+              {scansRemaining} {isPro ? `of 10 today` : `of ${FREE_SCAN_LIMIT} remaining`}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.counterDots}>
+          {Array.from({ length: isPro ? 10 : FREE_SCAN_LIMIT }).map((_, i) => {
+            const used = isPro
+              ? profile ? i < profile.paid_scans_used_today : false
+              : profile ? i < profile.free_scans_used : false;
+            return (
+              <View
+                key={i}
+                style={[styles.counterDot, used && styles.counterDotUsed]}
+              />
+            );
+          })}
+        </View>
+      </View>
+
+      {profile?.lease_end_date && (
+        <View style={[styles.reminderCard, reminderUrgent && styles.reminderCardUrgent]}>
+          <Bell size={18} color={reminderUrgent ? Colors.error : Colors.amber[400]} strokeWidth={2} />
+          <View style={styles.reminderContent}>
+            <Text style={styles.reminderTitle}>Lease renewal reminder</Text>
+            <Text style={styles.reminderText}>
+              {reminderHeadline}{' '}
+              {reminderDays !== null && reminderDays >= 0
+                ? 'Start planning now to negotiate better terms or explore alternatives.'
+                : 'Update your reminder from your latest lease report.'}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {recentLeases.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Recent leases</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/history')} activeOpacity={0.7}>
+              <Text style={styles.viewAllText}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          {recentLeases.map((lease) => (
+            <TouchableOpacity
+              key={lease.id}
+              style={styles.leaseItem}
+              onPress={() => handleLeasePress(lease.id)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.leaseIconWrap}>
+                <FileText size={18} color={Colors.gray[400]} strokeWidth={2} />
+              </View>
+              <View style={styles.leaseContent}>
+                <Text style={styles.leaseTitle} numberOfLines={1}>
+                  {lease.title}
+                </Text>                <View style={styles.leaseMetaRow}>
                   <Clock size={12} color={Colors.gray[600]} strokeWidth={2} />
                   <Text style={styles.leaseDate}>{formatDate(lease.created_at)}</Text>
                 </View>
