@@ -385,7 +385,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     minHeight: 54,
     justifyContent: 'center',
-    alignItems: 'cente  importRow: {
+        alignItems: 'center',
+  },
+  importRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: 24,
