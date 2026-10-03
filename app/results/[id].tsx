@@ -28,7 +28,7 @@ import {
 import { Colors } from '@/lib/theme';
 import { isPremium } from '@/lib/revenuecat';
 import { generateAndSharePdf } from '@/lib/pdf-report';
-import { FileText, Mail, GitCompare } from 'lucide-react-native';
+import { Mail, GitCompare } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { getAnalyzeReport, clearAnalyzeReport } from '@/lib/scan-session';
