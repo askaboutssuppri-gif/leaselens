@@ -486,7 +486,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  sectionTitle: {r',
+    sectionTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: Colors.gray[300],
   },
   scanButtonDisabled: {
     backgroundColor: Colors.navy[700],
