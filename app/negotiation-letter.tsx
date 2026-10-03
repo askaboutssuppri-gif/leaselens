@@ -197,3 +197,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular', fontSize: 12, color: Colors.gray[500],
     textAlign: 'center', marginTop: 16, lineHeight: 17,
   },
+});
