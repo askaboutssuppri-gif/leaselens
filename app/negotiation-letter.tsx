@@ -1,4 +1,103 @@
-              onChangeText={setTenantName}
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  TextInput,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import { ChevronLeft, Copy, Check, Mail } from 'lucide-react-native';
+import { Colors } from '@/lib/theme';
+import { supabase } from '@/lib/supabase';
+
+export default function NegotiationLetterScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const [letter, setLetter] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [tenantName, setTenantName] = useState('');
+  const [landlordName, setLandlordName] = useState('');
+  const [propertyAddress, setPropertyAddress] = useState('');
+
+  async function generate() {
+    if (!params.id) {
+      Alert.alert('Error', 'No lease selected.');
+      return;
+    }
+    setLoading(true);
+    setLetter(null);
+    try {
+      // Fetch the analysis findings
+      const { data: analysis, error } = await supabase
+        .from('analyses')
+        .select('findings')
+        .eq('id', params.id)
+        .single();
+      if (error) throw error;
+
+      const findings = (analysis?.findings || []).filter(
+        (f: any) => f.severity === 'high' || f.severity === 'medium'
+      );
+      if (findings.length === 0) {
+        Alert.alert('No issues found', 'This lease has no high or medium findings to negotiate.');
+        return;
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('generate-letter', {
+        body: { findings, tenantName, landlordName, propertyAddress },
+      });
+      if (fnError) throw new Error(fnError.message);
+      if (data?.error) throw new Error(data.error);
+      setLetter(data.letter);
+    } catch (e: any) {
+      Alert.alert('Failed', e.message || 'Could not generate the letter.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copyLetter() {
+    if (!letter) return;
+    await Clipboard.setStringAsync(letter);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={12}>
+          <ChevronLeft size={24} color={Colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Negotiation Letter</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {!letter && (
+          <>
+            <View style={styles.infoCard}>
+              <Mail size={28} color={Colors.amber[400]} />
+              <Text style={styles.infoTitle}>AI-drafted email</Text>
+              <Text style={styles.infoBody}>
+                We'll write a polite, professional email to your landlord based on
+                the issues found in this lease. Fill in the names (optional) for
+                a personalized draft.
+              </Text>
+            </View>
+
+            <Text style={styles.label}>Your name (optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Jane Doe"
+              placeholderTextColor={Colors.gray[500]}
+              value={tenantName}              onChangeText={setTenantName}
             />
             <Text style={styles.label}>Landlord name (optional)</Text>
             <TextInput
