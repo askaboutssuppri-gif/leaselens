@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-    sectionTitle: {
+      sectionTitle: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     color: Colors.gray[300],
