@@ -97,4 +97,82 @@ export default function PaywallScreen() {
               </View>
             );
           })}
-        </View>
+        </View>        {offering?.availablePackages.map((pkg: any) => {
+          const isSelected = selectedPackage?.identifier === pkg.identifier;
+          const isAnnual = pkg.identifier.includes('annual') || pkg.identifier.includes('year');
+          return (
+            <TouchableOpacity
+              key={pkg.identifier}
+              style={[styles.package, isSelected && styles.packageSelected]}
+              onPress={() => setSelectedPackage(pkg)}>
+              {isAnnual && (
+                <View style={styles.badge}><Text style={styles.badgeText}>BEST VALUE</Text></View>
+              )}
+              <View style={styles.packageRow}>
+                <View>
+                  <Text style={styles.packageTitle}>{isAnnual ? 'Annual' : 'Monthly'}</Text>
+                  <Text style={styles.packagePrice}>{pkg.product.priceString}{isAnnual ? '/year' : '/month'}</Text>
+                </View>
+                <View style={[styles.radio, isSelected && styles.radioSelected]}>
+                  {isSelected && <View style={styles.radioDot} />}
+                </View>
+              </View>
+              <Text style={styles.savings}>
+                {isAnnual ? 'Save 64% vs monthly • 7-day free trial' : '7-day free trial included'}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+        <TouchableOpacity
+          style={[styles.buyButton, purchasing && styles.buyButtonDisabled]}
+          onPress={handlePurchase}
+          disabled={purchasing || !selectedPackage}>
+          {purchasing ? (
+            <ActivityIndicator color={Colors.navy[900]} />
+          ) : (
+            <Text style={styles.buyButtonText}>Start 7-day free trial</Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleRestore} disabled={purchasing}>
+          <Text style={styles.restore}>Restore purchase</Text>
+        </TouchableOpacity>
+        <Text style={styles.finePrint}>
+          Free trial for 7 days, then {selectedPackage?.product.priceString}
+          {selectedPackage?.identifier.includes('annual') ? '/year' : '/month'}.
+          Cancel anytime in Google Play settings.
+        </Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.navy[900] },
+  center: { flex: 1, backgroundColor: Colors.navy[900], alignItems: 'center', justifyContent: 'center' },
+  close: { position: 'absolute', top: 48, right: 20, zIndex: 10, padding: 8 },
+  content: { paddingTop: 80, paddingHorizontal: 24, paddingBottom: 40 },
+  title: { fontFamily: 'Inter-Bold', fontSize: 28, color: Colors.white, textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontFamily: 'Inter-Regular', fontSize: 16, color: Colors.gray[400], textAlign: 'center', marginBottom: 28 },
+  features: { gap: 14, marginBottom: 28 },
+  feature: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.navy[800], borderRadius: 14, padding: 14, gap: 12 },
+  iconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.navy[700], alignItems: 'center', justifyContent: 'center' },
+  featureText: { flex: 1 },
+  featureTitle: { fontFamily: 'Inter-SemiBold', fontSize: 15, color: Colors.white },
+  featureDesc: { fontFamily: 'Inter-Regular', fontSize: 13, color: Colors.gray[400], marginTop: 2 },
+  package: { backgroundColor: Colors.navy[800], borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 2, borderColor: 'transparent' },
+  packageSelected: { borderColor: Colors.amber[400], backgroundColor: Colors.navy[700] },
+  badge: { position: 'absolute', top: -10, right: 16, backgroundColor: Colors.amber[400], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText: { fontFamily: 'Inter-Bold', fontSize: 11, color: Colors.navy[900] },
+  packageRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  packageTitle: { fontFamily: 'Inter-SemiBold', fontSize: 17, color: Colors.white },
+  packagePrice: { fontFamily: 'Inter-Regular', fontSize: 15, color: Colors.gray[300], marginTop: 4 },
+  radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: Colors.gray[500], alignItems: 'center', justifyContent: 'center' },
+  radioSelected: { borderColor: Colors.amber[400] },
+  radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.amber[400] },
+  savings: { fontFamily: 'Inter-Regular', fontSize: 13, color: Colors.green[400], marginTop: 8 },
+  buyButton: { backgroundColor: Colors.amber[400], borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8, marginBottom: 12 },
+  buyButtonDisabled: { opacity: 0.6 },
+  buyButtonText: { fontFamily: 'Inter-Bold', fontSize: 17, color: Colors.navy[900] },
+  restore: { fontFamily: 'Inter-Medium', fontSize: 14, color: Colors.gray[400], textAlign: 'center', marginBottom: 16 },
+  finePrint: { fontFamily: 'Inter-Regular', fontSize: 12, color: Colors.gray[500], textAlign: 'center', lineHeight: 18 },
+});
