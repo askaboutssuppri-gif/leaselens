@@ -98,7 +98,6 @@ export default function OnboardingScreen() {
       goToSlide(currentSlide - 1);
     }
   };
-
   const handleSignUp = async () => {
     setError(null);
     if (!selectedState) {
@@ -157,6 +156,12 @@ export default function OnboardingScreen() {
         })}
 
         <View style={styles.slide}>
+          <ScrollView
+            style={styles.stateSlideScroll}
+            contentContainerStyle={styles.stateSlideContent}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+          >
           <Text style={styles.slideTitle}>Choose your state</Text>
           <Text style={styles.slideBodySmall}>
             Lease laws vary by state. Select where you'll be renting so we can tailor our analysis to your local protections.
@@ -191,8 +196,7 @@ export default function OnboardingScreen() {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor={Colors.gray[500]}
-              value={email}
+              placeholderTextColor={Colors.gray[500]}              value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -224,6 +228,7 @@ export default function OnboardingScreen() {
               <Text style={styles.signInLink}>Already have an account? Sign in</Text>
             </TouchableOpacity>
           </View>
+          </ScrollView>
         </View>
       </ScrollView>
 
@@ -290,100 +295,7 @@ const styles = StyleSheet.create({
   slide: {
     width,
     paddingHorizontal: 32,
-    alignItems: 'center',
-    paddingTop: 24,
-  },
-  iconWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.navy[700],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-    borderWidth: 1,
-    borderColor: Colors.navy[600],
-  },
-  slideTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 26,
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: 14,
-    lineHeight: 32,
-  },
-  slideBody: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: Colors.gray[300],
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 340,
-  },
-  slideBodySmall: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 15,
-    color: Colors.gray[300],
-    textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 340,
-    marginBottom: 20,
-  },
-  stateGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    maxWidth: 360,
-    gap: 8,
-  },
-  stateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: Colors.navy[700],
-    borderWidth: 1,
-    borderColor: Colors.navy[600],
-    minHeight: 40,
-  },
-  stateChipSelected: {
-    backgroundColor: Colors.amber[400],
-    borderColor: Colors.amber[400],
-  },
-  stateChipText: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 14,
-    color: Colors.gray[200],
-  },
-  stateChipTextSelected: {
-    color: Colors.navy[900],
-  },
-  selectedStateName: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    color: Colors.amber[400],
-    marginTop: 12,
-  },
-  signupCard: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: Colors.navy[800],
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 20,
-  },
-  signupLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 13,
-    color: Colors.gray[400],
-    marginBottom: 6,
-    marginTop: 10,
-  },
-  input: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
+    alignItems: 'center',    fontSize: 16,
     color: Colors.white,
     backgroundColor: Colors.navy[900],
     borderRadius: 12,
